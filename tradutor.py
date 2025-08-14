@@ -5,13 +5,19 @@ alfabeto = {
     "1": "A", "2": "B", "3": "C", "4": "D", "5": "E", "6": "F", "7": "G", "8": "H", "9": "I", "0": "J",
     "*1": "K", "*2": "L", "*3": "M", "*4": "N", "*5": "O", "*6": "P", "*7": "Q", "*8": "R", "*9": "S", "*0": "T",
     "*1": "U", "2": "V", "3": "W", "4": "X", "5": "Y", "*6": "Z",
-    ".": " ", "..": ".", "/": ",", "=*": "!", "=/": "?", "-": "-", "(": "(", ")": ")"
+    ".": " ", "..": ".", "/": ",", "=*": "!", "=/": "?",
+    "-": "^",      # Circunflexo
+    "--": "~",     # Til
+    "_": "-",      # Hífen real
+    "(": "(", ")": ")"
 }
 
 acentos = {
     "+": {"A": "Á", "E": "É", "I": "Í", "O": "Ó", "U": "Ú"},
     "++": {"A": "À"},
-    "%": {"C": "Ç"}
+    "%": {"C": "Ç"},
+    "-": {"A": "Â", "E": "Ê", "I": "Î", "O": "Ô", "U": "Û"},  # Circunflexo
+    "--": {"A": "Ã", "O": "Õ"},  # Til
 }
 
 alfabeto_inv = {v: k for k, v in alfabeto.items()}
@@ -20,7 +26,7 @@ def limpar():
     os.system("cls" if os.name == "nt" else "clear")
 
 def mostrar_tabela():
-    print("\n📜 Tabela do Alfabeto Calculável\n")
+    print("\n Tabela do Alfabeto Calculável\n")
     print("| Código | Letra | Código | Letra | Código | Letra |")
     print("|--------|-------|--------|-------|--------|-------|")
     print("| 1      | A     | *1     | K     | **1    | U     |")
@@ -34,18 +40,21 @@ def mostrar_tabela():
     print("| 9      | I     | *9     | S     |        |       |")
     print("| 0      | J     | *0     | T     |        |       |\n")
 
-    print("📝 Acentos e Símbolos")
+    print(" Acentos e Símbolos")
     print("| Código | Significado |")
     print("|--------|-------------|")
     print("| +      | Acento agudo (Á, É, Í, Ó, Ú) |")
     print("| ++     | Crase (À) |")
     print("| %      | Cedilha (Ç) |")
+    print("| +-     | Algum acento (desconhecido) |")
+    print("| -      | Circunflexo (^: Â, Ê, Î, Ô, Û) |")
+    print("| --     | Til (Ã, Õ) |")
+    print("| _      | Hífen - |")
     print("| .      | Espaço |")
     print("| ..     | Ponto final . |")
     print("| /      | Vírgula , |")
     print("| =*     | Exclamação ! |")
     print("| =/     | Interrogação ? |")
-    print("| -      | Hífen - |")
     print("| (      | Parêntese abrindo |")
     print("| )      | Parêntese fechando |\n")
 
@@ -70,6 +79,12 @@ while True:
                 codigo += alfabeto_inv["A"] + "++"
             elif letra == "Ç":
                 codigo += alfabeto_inv["C"] + "%"
+            elif letra in ["Â","Ê","Î","Ô","Û"]:
+                base = {"Â":"A","Ê":"E","Î":"I","Ô":"O","Û":"U"}[letra]
+                codigo += alfabeto_inv[base] + "-"
+            elif letra in ["Ã","Õ"]:
+                base = {"Ã":"A","Õ":"O"}[letra]
+                codigo += alfabeto_inv[base] + "--"
             elif letra in alfabeto_inv:
                 codigo += alfabeto_inv[letra]
             else:
@@ -85,26 +100,33 @@ while True:
         while i < len(cod):
             if cod[i:i+3] in alfabeto:
                 letra = alfabeto[cod[i:i+3]]
+                texto += letra
                 i += 3
             elif cod[i:i+2] in alfabeto:
                 letra = alfabeto[cod[i:i+2]]
+                texto += letra
                 i += 2
             elif cod[i] in alfabeto:
                 letra = alfabeto[cod[i]]
+                texto += letra
                 i += 1
             else:
-                letra = cod[i]
+                texto += cod[i]
                 i += 1
 
-            # acento
-            if cod[i:i+2] in acentos:
-                letra = acentos[cod[i:i+2]].get(letra, letra)
-                i += 2
-            elif cod[i:i+1] in acentos:
-                letra = acentos[cod[i:i+1]].get(letra, letra)
-                i += 1
-
-            texto += letra
+            # Aplica acento na última letra já escrita
+            if i < len(cod):
+                if cod[i:i+2] == "+-":  # acento desconhecido
+                    texto = texto[:-1] + texto[-1] + "+-"
+                    i += 2
+                elif cod[i:i+2] in acentos:
+                    if texto[-1] in acentos[cod[i:i+2]]:
+                        texto = texto[:-1] + acentos[cod[i:i+2]][texto[-1]]
+                    i += 2
+                elif cod[i:i+1] in acentos:
+                    if texto[-1] in acentos[cod[i:i+1]]:
+                        texto = texto[:-1] + acentos[cod[i:i+1]][texto[-1]]
+                    i += 1
 
         print("\nTexto normal:", texto, "\n")
         input("Pressione ENTER para continuar...")
@@ -130,4 +152,4 @@ while True:
     else:
         limpar()
         print("Opção inválida!\n")
-        input("Pressione ENTER para continuar...")
+        input("Pressione ENTER para continuar...")
